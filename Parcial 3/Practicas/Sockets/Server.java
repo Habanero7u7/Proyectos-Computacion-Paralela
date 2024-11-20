@@ -13,7 +13,7 @@ public class Server {
     protected String menssage;
 
     public Server() throws IOException {
-        serverSocket = new ServerSocket(1234);
+        serverSocket = new ServerSocket(4321);
         clientSocket = new Socket();
     }
 
