@@ -1,4 +1,5 @@
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRemota {
     // **ALMACÉN DE CLIENTES**: mapa de nombres y callbacks
+    private final Map<String, String> clienteDirecciones = new HashMap<>();
     private final Map<String, ClienteCallback> clientes = new HashMap<>();
     private final ServidorGUI gui;
 
@@ -31,10 +33,23 @@ public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRe
 
     // **REGISTRO DE CLIENTES**
     @Override
-    public synchronized void registrarCliente(String nombre, ClienteCallback cliente) throws RemoteException {
-        System.out.println("[Servidor] Nuevo cliente registrado: " + nombre);
+    public synchronized void registrarCliente(String nombreYDireccion, ClienteCallback cliente) throws RemoteException {
+        String[] partes = nombreYDireccion.split("#");
+        if (partes.length != 2) {
+            System.out.println("[Servidor] Error: Formato inválido para el cliente: " + nombreYDireccion);
+            return;
+        }
+
+        String nombre = partes[0];
+        String direccion = partes[1];
+
+        System.out.println("[Servidor] Nuevo cliente registrado: " + nombre + " en " + direccion);
+
+        // Registrar el cliente y su dirección
         clientes.put(nombre, cliente);
-        actualizarListaClientesEnGUI();
+        clienteDirecciones.put(nombre, direccion);
+
+        // Notificar a todos los clientes conectados
         notificarClientesActualizados();
     }
 
@@ -55,7 +70,15 @@ public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRe
     // **OBTENCIÓN DE LA LISTA DE CLIENTES**
     @Override
     public synchronized List<String> obtenerClientes() throws RemoteException {
-        return new ArrayList<>(clientes.keySet());
+        List<String> listaClientes = new ArrayList<>();
+
+        // Combinar el nombre y la dirección de cada cliente
+        for (Map.Entry<String, String> entry : clienteDirecciones.entrySet()) {
+            listaClientes.add(entry.getKey() + "#" + entry.getValue());
+        }
+
+        System.out.println("[Servidor] Lista de clientes solicitada: " + listaClientes);
+        return listaClientes;
     }
 
     // **ACTUALIZACIÓN DE LA GUI DEL SERVIDOR**
@@ -65,7 +88,7 @@ public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRe
 
     // **NOTIFICACIÓN A LOS CLIENTES SOBRE ACTUALIZACIONES**
     private void notificarClientesActualizados() throws RemoteException {
-        List<String> listaClientes = new ArrayList<>(clientes.keySet());
+        List<String> listaClientes = obtenerClientes(); // Lista en formato nombre:direccion
         for (ClienteCallback cliente : clientes.values()) {
             cliente.actualizarListaClientes(listaClientes);
         }
@@ -75,10 +98,23 @@ public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRe
     public static void main(String[] args) {
         try {
             int puerto = Integer.parseInt(args[0]);
+
+            // Crear el registro RMI en el puerto especificado
             LocateRegistry.createRegistry(puerto);
+
+            // Obtener la dirección IP de la máquina donde se ejecuta el servidor
+            String direccionServidor = InetAddress.getLocalHost().getHostAddress();
             ServidorChatRMI servidor = new ServidorChatRMI();
-            Naming.rebind("//" + InetAddress.getLocalHost().getHostAddress() + ":" + puerto + "/ServidorChatRMI", servidor);
+
+            // Registrar el servidor en el RMI Registry
+            Naming.rebind("//" + direccionServidor + ":" + puerto + "/ServidorChatRMI", servidor);
+
             System.out.println("[Servidor] Registrado en RMI Registry con nombre: ServidorChatRMI");
+            System.out.println("[Servidor] Dirección del servidor: " + direccionServidor + ":" + puerto);
+        } catch (UnknownHostException e) {
+            System.out.println("[Servidor] Error al obtener la dirección IP: " + e.getMessage());
+        } catch (RemoteException e) {
+            System.out.println("[Servidor] Error al crear el registro RMI: " + e.getMessage());
         } catch (Exception e) {
             System.out.println("[Servidor] Error al iniciar el servidor: " + e.getMessage());
             e.printStackTrace();

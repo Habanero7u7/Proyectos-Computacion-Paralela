@@ -1,6 +1,8 @@
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -38,7 +40,7 @@ public class ClienteGUI {
         JButton botonEnviar = new JButton("Enviar");
 
         // Lista desplegable de clientes (inicialmente vacía con "Todos")
-        clientesLista = new JComboBox<>(new String[]{"Todos"});
+        clientesLista = new JComboBox<>(new String[] { "Todos" });
 
         panelInferior.add(clientesLista, BorderLayout.WEST);
         panelInferior.add(campoMensaje, BorderLayout.CENTER);
@@ -47,31 +49,46 @@ public class ClienteGUI {
         frame.add(panelInferior, BorderLayout.SOUTH);
         frame.setVisible(true);
 
-        // Acción del botón "Enviar"
+        // **Evento para botón Enviar**
         botonEnviar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String mensaje = campoMensaje.getText();
-                String destino = (String) clientesLista.getSelectedItem();
+                enviarMensaje();
+            }
+        });
 
-                if (mensaje.isEmpty()) {
-                    System.out.println("[ClienteGUI] Mensaje vacío. No se enviará.");
-                    return;
-                }
-
-                if (destino != null) {
-                    try {
-                        cliente.enviarMensaje(destino, mensaje);
-                        campoMensaje.setText("");
-                    } catch (Exception ex) {
-                        System.out.println("[ClienteGUI] Error al enviar mensaje: " + ex.getMessage());
-                        ex.printStackTrace();
-                    }
-                } else {
-                    System.out.println("[ClienteGUI] No se seleccionó un destino.");
+        // **Evento para tecla Enter**
+        campoMensaje.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    enviarMensaje();
                 }
             }
         });
+    }
+
+    // **Método para enviar mensajes**
+    private void enviarMensaje() {
+        try {
+            String mensaje = campoMensaje.getText();
+            String destino = (String) clientesLista.getSelectedItem();
+
+            if (destino == null || mensaje.isEmpty()) {
+                return; // No enviar si no hay destino o mensaje
+            }
+
+            if (destino.equals("Todos")) {
+                cliente.enviarMensaje("Todos", mensaje);
+            } else {
+                cliente.enviarMensaje(destino, mensaje);
+            }
+
+            campoMensaje.setText(""); // Limpiar campo de mensaje
+        } catch (Exception ex) {
+            System.out.println("[GUI] Error al enviar mensaje: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     // Método para actualizar el área de chat
@@ -84,11 +101,16 @@ public class ClienteGUI {
         SwingUtilities.invokeLater(() -> {
             clientesLista.removeAllItems();
             clientesLista.addItem("Todos");
-            for (String cliente : clientes) {
-                if (!cliente.equals(this.cliente.getNombre())) {
-                    clientesLista.addItem(cliente);
+            for (String clienteInfo : clientes) {
+                String[] partes = clienteInfo.split("#");
+                if (partes.length == 2) {
+                    String clienteNombre = partes[0];
+                    if (!clienteNombre.equals(cliente.getNombre())) {
+                        clientesLista.addItem(clienteNombre);
+                    }
                 }
             }
         });
     }
+
 }
