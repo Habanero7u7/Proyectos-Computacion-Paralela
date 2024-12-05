@@ -3,7 +3,7 @@ import java.rmi.Naming;
 public class MiClienteRMI {
     public static void main(String[] args) {
         try {
-            MiInterfazRemota mir = (MiInterfazRemota) Naming.lookup("//" +
+            MiInterfazRemotaRMI mir = (MiInterfazRemotaRMI) Naming.lookup("//" +
                     args[0] + ":" + args[1] + "/PruebaRMI");
 
             // Imprimimos miMetodo1() tantas veces como devuelva miMetodo2()
