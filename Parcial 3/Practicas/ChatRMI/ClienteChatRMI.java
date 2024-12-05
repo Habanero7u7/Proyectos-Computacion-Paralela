@@ -116,7 +116,7 @@ public class ClienteChatRMI extends UnicastRemoteObject implements ClienteCallba
             ClienteChatRMI cliente = new ClienteChatRMI(nombre);
 
             // Registrar cliente en el servidor principal
-            servidor.registrarCliente(nombre + "#" + "//" + host + ":" + cliente.puertoLocal + "/" + nombre, cliente);
+            servidor.registrarCliente(nombre + "#" + "//" + InetAddress.getLocalHost().getHostAddress() + ":" + cliente.puertoLocal + "/" + nombre, cliente);
             System.out.println("[Cliente] Cliente registrado en el servidor principal");
 
             // Obtener lista inicial de clientes
