@@ -49,6 +49,9 @@ public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRe
         clientes.put(nombre, cliente);
         clienteDirecciones.put(nombre, direccion);
 
+        // Actualizar la lista de clientes en la GUI del servidor
+        actualizarListaClientesEnGUI();
+
         // Notificar a todos los clientes conectados
         notificarClientesActualizados();
     }
@@ -83,7 +86,10 @@ public class ServidorChatRMI extends UnicastRemoteObject implements MiInterfazRe
 
     // **ACTUALIZACIÓN DE LA GUI DEL SERVIDOR**
     private void actualizarListaClientesEnGUI() {
-        gui.actualizarListaClientes(new ArrayList<>(clientes.keySet()));
+        // Convierte los clientes registrados en una lista de nombres para mostrar en la
+        // GUI
+        List<String> listaClientes = new ArrayList<>(clientes.keySet());
+        gui.actualizarListaClientes(listaClientes);
     }
 
     // **NOTIFICACIÓN A LOS CLIENTES SOBRE ACTUALIZACIONES**
