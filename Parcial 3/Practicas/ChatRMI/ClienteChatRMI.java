@@ -1,3 +1,4 @@
+import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -23,10 +24,12 @@ public class ClienteChatRMI extends UnicastRemoteObject implements ClienteCallba
 
         try {
             // Generar un puerto dinámico y registrar el cliente en el RMI Registry
+            String direccionCliente = InetAddress.getLocalHost().getHostAddress();
             puertoLocal = 2000 + (int) (Math.random() * 5000); // Puerto aleatorio en el rango 2000-6999
             LocateRegistry.createRegistry(puertoLocal);
-            Naming.rebind("//localhost:" + puertoLocal + "/" + nombre, this);
-            System.out.println("[Cliente] Servidor P2P iniciado para este cliente en 'localhost:" + puertoLocal + "/"
+
+            Naming.rebind("//" + direccionCliente + ":" + puertoLocal + "/" + nombre, this);
+            System.out.println("[Cliente] Servidor P2P iniciado para este cliente en '" + direccionCliente + ":" + puertoLocal + "/"
                     + nombre + "'");
         } catch (Exception e) {
             System.out.println("[Cliente] Error al iniciar servidor P2P: " + e.getMessage());
@@ -113,7 +116,7 @@ public class ClienteChatRMI extends UnicastRemoteObject implements ClienteCallba
             ClienteChatRMI cliente = new ClienteChatRMI(nombre);
 
             // Registrar cliente en el servidor principal
-            servidor.registrarCliente(nombre + "#" + "//localhost:" + cliente.puertoLocal + "/" + nombre, cliente);
+            servidor.registrarCliente(nombre + "#" + "//" + host + cliente.puertoLocal + "/" + nombre, cliente);
             System.out.println("[Cliente] Cliente registrado en el servidor principal");
 
             // Obtener lista inicial de clientes
