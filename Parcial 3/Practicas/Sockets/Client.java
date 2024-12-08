@@ -7,7 +7,7 @@ public class Client {
     protected DataOutputStream outputServer;
 
     public Client() throws IOException {
-        serverSocket = new Socket("192.168.170.52", 1234);
+        serverSocket = new Socket("192.168.68.115", 1234);
     }
 
     public void startClient() {
