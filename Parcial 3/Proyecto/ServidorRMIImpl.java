@@ -5,20 +5,24 @@ import java.util.Map;
 
 public class ServidorRMIImpl extends UnicastRemoteObject implements ServidorRMI {
     private final Map<String, ClienteRMI> clientes = new HashMap<>();
+    private final ServitorGUI gui; // Referencia a la GUI del servidor
 
-    public ServidorRMIImpl() throws RemoteException {
+    public ServidorRMIImpl(ServitorGUI gui) throws RemoteException {
         super();
+        this.gui = gui;
         System.out.println("[Servidor] Servidor RMI inicializado.");
     }
 
     @Override
     public synchronized void registrarCliente(String nombre, ClienteRMI cliente) throws RemoteException {
         clientes.put(nombre, cliente);
+        gui.agregarCliente(nombre); // Actualizar la lista de clientes en la GUI
         System.out.println("[Servidor] Cliente registrado: " + nombre);
     }
 
     @Override
     public synchronized void enviarTiempo(String cliente, long tiempo) throws RemoteException {
+        gui.actualizarTiempo(cliente, tiempo); // Mostrar el tiempo en la GUI
         System.out.println("[Servidor] Tiempo recibido de " + cliente + ": " + tiempo + " ms");
     }
 

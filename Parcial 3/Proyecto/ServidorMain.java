@@ -14,7 +14,14 @@ public class ServidorMain {
             LocateRegistry.createRegistry(puerto); // Crear el registro en el puerto especificado
 
             String ip = InetAddress.getLocalHost().getHostAddress(); // Obtener la IP local
-            ServidorRMIImpl servidor = new ServidorRMIImpl();
+
+            // Crear GUI del servidor
+            ServitorGUI gui = new ServitorGUI();
+
+            // Crear instancia del servidor RMI con referencia a la GUI
+            ServidorRMIImpl servidor = new ServidorRMIImpl(gui);
+
+            // Registrar el servidor en el RMI Registry
             Naming.rebind("rmi://" + ip + ":" + puerto + "/ServidorFractales", servidor);
 
             System.out.println("[Servidor] Servidor iniciado en: " + ip + ":" + puerto);
