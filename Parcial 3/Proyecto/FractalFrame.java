@@ -44,12 +44,13 @@ public class FractalFrame extends JFrame {
     private String clienteNombre; // Nombre del cliente
     private JButton startButton; // Referencia al botón de inicio
 
-    public FractalFrame(String clienteNombre, String servidorHost) {
+    public FractalFrame(String clienteNombre, String servidorHost, int puerto) {
         this.clienteNombre = clienteNombre;
         try {
-            servidor = (ServidorRMI) Naming.lookup("rmi://" + servidorHost + "/ServidorFractales");
+            String urlServidor = "rmi://" + servidorHost + ":" + puerto + "/ServidorFractales";
+            servidor = (ServidorRMI) Naming.lookup(urlServidor);
             servidor.registrarCliente(clienteNombre, new ClienteRMIImpl());
-            System.out.println("[Cliente - " + clienteNombre + "] Registrado exitosamente en el servidor.");
+            System.out.println("[Cliente - " + clienteNombre + "] Conectado al servidor: " + servidorHost + ":" + puerto);
         } catch (Exception e) {
             System.err.println("[Cliente - " + clienteNombre + "] Error al conectarse al servidor: " + e.getMessage());
             e.printStackTrace();
@@ -258,14 +259,15 @@ public class FractalFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.err.println("Uso: java FractalFrame <nombreCliente> <servidorHost>");
+        if (args.length < 3) {
+            System.err.println("Uso: java FractalFrame <nombreCliente> <servidorHost> <puerto>");
             System.exit(1);
         }
 
         String clienteNombre = args[0];
         String servidorHost = args[1];
+        int puerto = Integer.parseInt(args[2]);
 
-        SwingUtilities.invokeLater(() -> new FractalFrame(clienteNombre, servidorHost).setVisible(true));
+        SwingUtilities.invokeLater(() -> new FractalFrame(clienteNombre, servidorHost, puerto).setVisible(true));
     }
 }
